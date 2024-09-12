@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  role     Role    @default(USER)
+  username String?
+  email    String  @unique
+  password String
+
+  receipt receipt[]
+  Order   Order[]
+}
+
+model Order {
+  id          Int    @id @default(autoincrement())
+  user_gameId String
+  // price       Int
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId   Int       @map("user_id")
+  email    String
+  games    Games     @relation(fields: [games_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  games_id Int       @map("game_id")
+  Payment  Payment[]
+  pointId  Int
+  point    Point     @relation(fields: [pointId], references: [id])
+  status   String    @default("รอดำเนินการ")
+}
+
+model Payment {
+  id        Int       @id @default(autoincrement())
+  pay_img   String    @default("https://topicstock.pantip.com/chalermthai/topicstock/2007/04/A5312975/A5312975-0.jpg")
+  pay_price Int
+  pay_time  DateTime  @default(now())
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  orderId   Int       @map("order_id")
+  receipt   receipt[]
+}
+
+model Games {
+  id        Int     @id @default(autoincrement())
+  game_name String
+  img       String?
+
+  Order         Order[]
+  gametype_name TypeGames @relation(fields: [gametypeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  gametypeId    Int       @map("gametype_Id")
+  receipt       receipt[]
+  Point         Point[]
+}
+
+model Point {
+  id     Int     @id @default(autoincrement())
+  point  Int
+  price  Int
+  game   Games   @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  gameId Int     @map("game_id")
+  Order  Order[]
+}
+
+model TypeGames {
+  id            Int     @id @default(autoincrement())
+  gametype_name String
+  Games         Games[]
+}
+
+model receipt {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId    Int     @map("user_id")
+  game      Games   @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  gameId    Int     @map("game_id")
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  paymentId Int     @map("pay_id")
+}
+
+// enum State{
+//   PROGRESS
+//   COMPLETE
+
+// }
